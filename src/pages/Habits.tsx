@@ -2,7 +2,8 @@ import { useState, useCallback } from "react"
 import { useGreenhouseStore } from "@/store/greenhouse"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { Droplets, Flame, Check } from "lucide-react"
+import { Droplets, Flame, Check, X } from "lucide-react"
+import PixelPlant from "@/components/PixelPlant"
 
 const HABIT_ICONS: Record<string, string> = {
   droplets: "💧",
@@ -18,6 +19,7 @@ export default function Habits() {
   const navigate = useNavigate()
   const [wateringHabit, setWateringHabit] = useState<string | null>(null)
   const [completedAnim, setCompletedAnim] = useState<string | null>(null)
+  const [selectingPlantFor, setSelectingPlantFor] = useState<string | null>(null)
 
   const completedCount = habits.filter((h) => h.completedToday).length
   const totalWaterAmount = habits.reduce((sum, h) => sum + (h.completedToday ? h.waterAmount : 0), 0)
@@ -27,19 +29,40 @@ export default function Habits() {
       const habit = habits.find((h) => h.id === habitId)
       if (!habit || habit.completedToday || !plants.length) return
 
-      completeHabit(habitId)
-      setCompletedAnim(habitId)
-      setWateringHabit(habitId)
+      if (plants.length === 1) {
+        completeHabit(habitId)
+        setCompletedAnim(habitId)
+        setWateringHabit(habitId)
+        waterPlant(plants[0].id, habitId, habit.name)
+        setTimeout(() => {
+          setCompletedAnim(null)
+          setWateringHabit(null)
+        }, 1000)
+      } else {
+        setSelectingPlantFor(habitId)
+      }
+    },
+    [habits, plants, completeHabit, waterPlant]
+  )
 
-      const targetPlant = plants[0]
-      waterPlant(targetPlant.id, habitId, habit.name)
+  const handleSelectPlant = useCallback(
+    (plantId: string) => {
+      if (!selectingPlantFor) return
+      const habit = habits.find((h) => h.id === selectingPlantFor)
+      if (!habit) return
+
+      completeHabit(selectingPlantFor)
+      setCompletedAnim(selectingPlantFor)
+      setWateringHabit(selectingPlantFor)
+      waterPlant(plantId, selectingPlantFor, habit.name)
+      setSelectingPlantFor(null)
 
       setTimeout(() => {
         setCompletedAnim(null)
         setWateringHabit(null)
       }, 1000)
     },
-    [habits, plants, completeHabit, waterPlant]
+    [selectingPlantFor, habits, completeHabit, waterPlant]
   )
 
   const categoryNames: Record<string, string> = {
@@ -199,6 +222,63 @@ export default function Habits() {
           </div>
         </div>
       ))}
+
+      <AnimatePresence>
+        {selectingPlantFor && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            onClick={() => setSelectingPlantFor(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="w-full max-w-sm rounded-2xl p-5 pixel-border"
+              style={{ backgroundColor: "#F5F0E8" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3
+                  className="text-lg"
+                  style={{ fontFamily: "'ZCOOL QingKe HuangYou', cursive", color: "#4A7C59" }}
+                >
+                  💧 选择浇水目标
+                </h3>
+                <button onClick={() => setSelectingPlantFor(null)} className="p-1 rounded-lg hover:bg-stone-200 transition-colors">
+                  <X size={18} className="text-stone-500" />
+                </button>
+              </div>
+              <p className="text-xs text-stone-400 mb-3">选择你想浇水的植物</p>
+              <div className="space-y-2">
+                {plants.map((plant) => (
+                  <button
+                    key={plant.id}
+                    onClick={() => handleSelectPlant(plant.id)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-white border-2 border-stone-200 hover:border-green-400 hover:bg-green-50 transition-all"
+                  >
+                    <PixelPlant type={plant.type} stage={plant.stage} size={36} animated={false} />
+                    <div className="flex-1 text-left">
+                      <p className="font-bold text-stone-700" style={{ fontFamily: "'ZCOOL QingKe HuangYou', cursive" }}>
+                        {plant.name}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-stone-400">{plant.stage}</span>
+                        <span className="text-xs text-stone-300">·</span>
+                        <span className="text-xs text-green-600">{plant.growthProgress}%</span>
+                      </div>
+                    </div>
+                    <span className="text-lg">💧</span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,9 +1,10 @@
 import { NavLink } from "react-router-dom"
-import { Home, Droplets, BookOpen, Flower2 } from "lucide-react"
+import { Home, Droplets, BookOpen, Timer } from "lucide-react"
 
 const NAV_ITEMS = [
   { to: "/", icon: Home, label: "温室" },
   { to: "/habits", icon: Droplets, label: "习惯" },
+  { to: "/focus", icon: Timer, label: "专注" },
   { to: "/collection", icon: BookOpen, label: "图鉴" },
 ]
 
@@ -16,7 +17,7 @@ export default function Navigation() {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all duration-200 ${
+              `flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 ${
                 isActive
                   ? "text-green-700 bg-green-50"
                   : "text-stone-400 hover:text-green-600 hover:bg-green-50/50"

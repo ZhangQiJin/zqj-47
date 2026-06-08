@@ -4,6 +4,7 @@ import Navigation from "@/components/Navigation"
 import Greenhouse from "@/pages/Greenhouse"
 import PlantDetail from "@/pages/PlantDetail"
 import Habits from "@/pages/Habits"
+import Focus from "@/pages/Focus"
 import Collection from "@/pages/Collection"
 import { useGreenhouseStore } from "@/store/greenhouse"
 
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/" element={<Greenhouse />} />
         <Route path="/plant/:id" element={<PlantDetail />} />
         <Route path="/habits" element={<Habits />} />
+        <Route path="/focus" element={<Focus />} />
         <Route path="/collection" element={<Collection />} />
       </Routes>
       <Navigation />
